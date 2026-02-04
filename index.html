@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Programs & Suggested Placement Exams</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; line-height: 1.4; }
+    .card { max-width: 760px; padding: 1.25rem 1.25rem 1rem; border: 1px solid rgba(127,127,127,.35); border-radius: 14px; }
+    label { display:block; font-weight: 600; margin-bottom: .5rem; }
+    select { width: 100%; padding: .6rem .7rem; border-radius: 10px; border: 1px solid rgba(127,127,127,.45); font-size: 1rem; }
+    .result { margin-top: 1rem; padding: .9rem 1rem; border-radius: 12px; background: rgba(127,127,127,.10); }
+    .muted { opacity: .75; font-size: .95rem; margin-top: .35rem; }
+    .row { display:flex; gap: .75rem; align-items: baseline; flex-wrap: wrap; }
+    .pill { display:inline-block; padding: .15rem .5rem; border-radius: 999px; border: 1px solid rgba(127,127,127,.35); font-size: .85rem; opacity: .85; }
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1 style="margin:0 0 .25rem;">Suggested Placement Exams</h1>
+    <p class="muted" style="margin:0 0 1rem;">
+      Select a program to see the suggested placement exam(s).
+    </p>
+
+    <label for="programSelect">Program</label>
+    <select id="programSelect" aria-describedby="helpText">
+      <option value="" selected disabled>Choose a program…</option>
+    </select>
+    <div id="helpText" class="muted">Programs are grouped by majors and minors.</div>
+
+    <section id="output" class="result" aria-live="polite" style="display:none;">
+      <div class="row">
+        <h2 id="programTitle" style="margin:0; font-size:1.15rem;"></h2>
+        <span id="groupPill" class="pill" style="display:none;"></span>
+      </div>
+      <p id="examText" style="margin:.5rem 0 0;"></p>
+    </section>
+  </main>
+
+  <script>
+    // Data source: "Majors and Minors Chart (1) (1).pdf"
+    // Structure: one combined program field + raw suggested placement exam text.
+    const data = {
+      majors: [
+        { program: "Accounting, B.B.A.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Biochemistry, B.S.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Biological Sciences, B.A.", suggested_placement_exams: "CHEM 1303" },
+        { program: "Biological Sciences, B.S.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Biophysical Sciences, B.S.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Business Analytics and Supply Chain Management, B.B.A.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Chemistry, B.A.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Chemistry, B.S.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Civil Engineering, B.S.C.E.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Computer Science, B.A.", suggested_placement_exams: "MATH 1337" },
+        { program: "Computer Science, B.S.", suggested_placement_exams: "MATH 1337, CHEM 1303 (optional)" },
+        { program: "Data Science, B.S.", suggested_placement_exams: "MATH 1337" },
+        { program: "Earth Sciences, B.A.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Earth Sciences, B.S.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Economics with Finance Applications, B.S.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Economics, B.A.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Economics, B.S.", suggested_placement_exams: "MATH 1337" },
+        { program: "Electrical and Computer Engineering, B.S.E.C.E.", suggested_placement_exams: "MATH 1337 and CHEM 1303 (optional)" },
+        { program: "Electrical and Computer Engineering, B.S.E.C.E. (Biomedical)", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Environmental Engineering, B.S.Env.", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Finance, B.B.A.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "General Business, B.B.A.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Health and Society, B.A.", suggested_placement_exams: "CHEM 1303 option" },
+        { program: "Health and Society, B.S. (Track 1)", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Management Science, B.S.", suggested_placement_exams: "MATH 1337 and CHEM 1303 (optional)" },
+        { program: "Management, B.B.A.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Marketing, B.B.A.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Mathematics, B.A.", suggested_placement_exams: "MATH 1337" },
+        { program: "Mathematics, B.S.", suggested_placement_exams: "MATH 1337 and CHEM 1303 (optional)" },
+        { program: "Mechanical Engineering, B.S.M.E.", suggested_placement_exams: "MATH 1337 and CHEM 1303" },
+        { program: "Physics, B.A.", suggested_placement_exams: "MATH 1337" },
+        { program: "Physics, B.S.", suggested_placement_exams: "MATH 1337" },
+        { program: "Real Estate, B.B.A.", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Statistical Science, B.S.", suggested_placement_exams: "MATH 1337" }
+      ],
+      minors: [
+        { program: "Biological Sciences Minor", suggested_placement_exams: "CHEM 1303" },
+        { program: "Civil Engineering Minor", suggested_placement_exams: "MATH 1337" },
+        { program: "Data Science Minor", suggested_placement_exams: "MATH 1337" },
+        { program: "Economics Minor", suggested_placement_exams: "MATH 1309 or MATH 1337" },
+        { program: "Electrical Engineering Minor", suggested_placement_exams: "MATH 1337" },
+        { program: "Environmental Engineering Minor", suggested_placement_exams: "CHEM 1303 and MATH 1337" },
+        { program: "Health Sciences Minor", suggested_placement_exams: "CHEM 1303" },
+        { program: "Management Science Minor", suggested_placement_exams: "MATH 1337" },
+        { program: "Mathematics Minor", suggested_placement_exams: "MATH 1337" },
+        { program: "Mechanical Engineering Minor", suggested_placement_exams: "MATH 1337 and CHEM 1303 (optional)" },
+        { program: "Physics Minor", suggested_placement_exams: "MATH 1337" }
+      ]
+    };
+
+    // Build a lookup so selection -> record + group
+    const lookup = new Map();
+    data.majors.forEach(item => lookup.set(item.program, { ...item, group: "Major" }));
+    data.minors.forEach(item => lookup.set(item.program, { ...item, group: "Minor" }));
+
+    // Populate dropdown with optgroups
+    const selectEl = document.getElementById("programSelect");
+
+    function addGroup(label, items) {
+      const og = document.createElement("optgroup");
+      og.label = label;
+      items
+        .slice()
+        .sort((a, b) => a.program.localeCompare(b.program))
+        .forEach(item => {
+          const opt = document.createElement("option");
+          opt.value = item.program;
+          opt.textContent = item.program;
+          og.appendChild(opt);
+        });
+      selectEl.appendChild(og);
+    }
+
+    addGroup("Majors", data.majors);
+    addGroup("Minors", data.minors);
+
+    const output = document.getElementById("output");
+    const programTitle = document.getElementById("programTitle");
+    const examText = document.getElementById("examText");
+    const groupPill = document.getElementById("groupPill");
+
+    selectEl.addEventListener("change", (e) => {
+      const program = e.target.value;
+      const record = lookup.get(program);
+
+      if (!record) {
+        output.style.display = "none";
+        return;
+      }
+
+      programTitle.textContent = record.program;
+      examText.textContent = record.suggested_placement_exams;
+
+      groupPill.textContent = record.group;
+      groupPill.style.display = "inline-block";
+
+      output.style.display = "block";
+    });
+  </script>
+</body>
+</html>
